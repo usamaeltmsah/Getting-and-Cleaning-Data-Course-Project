@@ -11,7 +11,7 @@ subject_train <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/tra
 
 features <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/features.txt", col.names = c("n","functions"))
 activity_labels <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/activity_labels.txt", col.names = c("code", "activity"))
-
+ 
 X <- rbind(x_train, x_test)
 Y <- rbind(y_train, y_test)
 
