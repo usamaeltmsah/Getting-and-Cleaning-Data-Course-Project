@@ -1,50 +1,46 @@
-    library(dplyr)
-    
-      # download zip file containing data if it hasn't already been downloaded
-      zipUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-      zipFile <- "UCI HAR Dataset.zip"
-      
-      if (!file.exists(zipFile)) {
-        download.file(zipUrl, zipFile, mode = "wb")
-      }
-      
-      # unzip zip file containing data if data directory doesn't already exist
-      dataPath <- paste(getwd(), "UCI HAR Dataset", sep = "/")
+library(dplyr)
+
+x_test <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/test/X_test.txt", col.names = features$functions)
+y_test <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/test/y_test.txt", col.names = "code")
+
+x_train <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/train/X_train.txt", col.names = features$functions)
+y_train <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/train/y_train.txt", col.names = "code")
+
+subject_test <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/test/subject_test.txt", col.names = "subject")
+subject_train <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/train/subject_train.txt", col.names = "subject")
+
+features <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/features.txt", col.names = c("n","functions"))
+activity_labels <- read.table("/media/usama/F/NTL/Data Science/UCI HAR Dataset/activity_labels.txt", col.names = c("code", "activity"))
+ 
+X <- rbind(x_train, x_test)
+Y <- rbind(y_train, y_test)
+
+  Subject <- rbind(subject_train, subject_test)
+Merged_Data <- cbind(Subject, Y, X)
+
+tidy_data <- Merged_Data %>% 
+  select(subject, code, contains("mean"), contains("std"))
+
+tidy_data$code <- activity_labels[tidy_data$code, 2]
+
+names(tidy_data)[2] = "activity"
+
+names(tidy_data)<-gsub("Acc", "Accelerometer", names(tidy_data))
+names(tidy_data)<-gsub("Gyro", "Gyroscope", names(tidy_data))
+names(tidy_data)<-gsub("BodyBody", "Body", names(tidy_data))
+names(tidy_data)<-gsub("Mag", "Magnitude", names(tidy_data))
+names(tidy_data)<-gsub("^t", "Time", names(tidy_data))
+names(tidy_data)<-gsub("^f", "Frequency", names(tidy_data))
+names(tidy_data)<-gsub("tBody", "TimeBody", names(tidy_data))
+names(tidy_data)<-gsub("-mean()", "Mean", names(tidy_data), ignore.case = TRUE)
+names(tidy_data)<-gsub("-std()", "STD", names(tidy_data), ignore.case = TRUE)
+names(tidy_data)<-gsub("-freq()", "Frequency", names(tidy_data), ignore.case = TRUE)
+names(tidy_data)<-gsub("angle", "Angle", names(tidy_data))
+names(tidy_data)<-gsub("gravity", "Gravity", names(tidy_data))
+
+final_data <- tidy_data %>%
+  group_by(subject, activity) %>%
+  summarise_all(funs(mean))
+write.table(final_data, "final_data.txt", row.name=FALSE)
   
-      if (!file.exists(dataPath)) {
-        unzip(zipFile)
-      }
-      
-      features <- read.table(paste(dataPath, "features.txt", sep = "/"), col.names = c("n","functions"))
-      activities <- read.table(paste(dataPath, "activity_labels.txt", sep = "/"), col.names = c("code", "activity"))
-      subject_test <- read.table(paste(dataPath, "test/subject_test.txt", sep = "/"), col.names = "subject")
-      x_test <- read.table(paste(dataPath, "test/X_test.txt", sep = "/"), col.names = features$functions)
-      y_test <- read.table(paste(dataPath, "test/y_test.txt", sep = "/"), col.names = "code")
-      subject_train <- read.table(paste(dataPath, "train/subject_train.txt", sep = "/"), col.names = "subject")
-      x_train <- read.table(paste(dataPath, "train/X_train.txt", sep = "/"), col.names = features$functions)
-      y_train <- read.table(paste(dataPath, "train/y_train.txt", sep = "/"), col.names = "code")
-        
-      X <- rbind(x_train, x_test)
-      Y <- rbind(y_train, y_test)
-      Subject <- rbind(subject_train, subject_test)
-      Merged_Data <- cbind(Subject, Y, X)
-      
-      TidyData <- Merged_Data %>% select(subject, code, contains("mean"), contains("std"))
-      
-      TidyData$code <- activities[TidyData$code, 2]
-      
-      head(TidyData)
-      names(TidyData)[2] = "activity"
-      names(TidyData)<-gsub("Acc", "Accelerometer", names(TidyData))
-      names(TidyData)<-gsub("Gyro", "Gyroscope", names(TidyData))
-      names(TidyData)<-gsub("BodyBody", "Body", names(TidyData))
-      names(TidyData)<-gsub("Mag", "Magnitude", names(TidyData))
-      names(TidyData)<-gsub("^t", "Time", names(TidyData))
-      names(TidyData)<-gsub("^f", "Frequency", names(TidyData))
-      names(TidyData)<-gsub("tBody", "TimeBody", names(TidyData))
-      names(TidyData)<-gsub("-mean()", "Mean", names(TidyData), ignore.case = TRUE)
-      names(TidyData)<-gsub("-std()", "STD", names(TidyData), ignore.case = TRUE)
-      names(TidyData)<-gsub("-freq()", "Frequency", names(TidyData), ignore.case = TRUE)
-      names(TidyData)<-gsub("angle", "Angle", names(TidyData))
-      names(TidyData)<-gsub("gravity", "Gravity", names(TidyData))
-      
+str(final_data)
